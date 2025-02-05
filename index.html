@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+    body {
+        margin: 0;
+        overflow: hidden;
+        background: black;
+    }
+    canvas {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+    }
+</style>
+</head>
+
+<body>
+    <canvas></canvas>
+</body>
+<script>
+    let ctx, canvas;
+    let mouseX = 0, mouseY = 0;
+    let tiltX = 0, tiltY = 0;
+
+    function resizeCanvas() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    }
+
+    window.onload = function() {
+        canvas = document.querySelector('canvas');
+        ctx = canvas.getContext('2d');
+        resizeCanvas();
+
+        // Eveniment pentru redimensionare
+        window.addEventListener('resize', resizeCanvas);
+
+        // Mișcare mouse
+        window.addEventListener('mousemove', (e) => {
+            mouseX = e.clientX - canvas.width / 2;
+            mouseY = e.clientY - canvas.height / 2;
+        });
+
+        // Touchscreen
+        window.addEventListener('touchmove', (e) => {
+            const touch = e.touches[0];
+            mouseX = touch.clientX - canvas.width / 2;
+            mouseY = touch.clientY - canvas.height / 2;
+        });
+
+        // Giroscop
+        window.addEventListener("deviceorientation", (event) => {
+            tiltX = event.gamma / 2;  
+            tiltY = event.beta / 2;   
+        });
+
+        animate();
+    };
+
+    function animate() {
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        const t = Date.now() / 7000;
+        const m = 150;  // Mai multe linii pentru efect mai plin
+
+        let moveX = mouseX / 5 + tiltX * 2;
+        let moveY = mouseY / 5 + tiltY * 2;
+
+        for (let i = 0; i < m; i++) {
+            const a = Math.PI * 5 * i / m;
+            const b = Math.PI * 2 * i / m;
+            ctx.lineWidth = Math.pow(Math.sin(b - 12 * t), 3) * 2;
+            ctx.strokeStyle = `hsla(${(t * 50 + b) % 360}, 80%, 60%, 0.9)`;
+            poly(canvas.width / 2 + moveX + 40 * Math.cos(10 * t + a), 
+                 canvas.height / 2 + moveY + 40 * Math.sin(7 * t + a), 
+                 3.5 * i, 8, t + b);
+        }
+        requestAnimationFrame(animate);
+    }
+
+    function poly(xc, yc, r, n, a0) {
+        ctx.beginPath();
+        for (let i = 0; i < n; i++) {
+            const a = Math.PI * 2 * i / n + a0;
+            const x = xc + r * Math.cos(a);
+            const y = yc + r * Math.sin(a);
+            ctx.lineTo(x, y);
+        }
+        ctx.closePath();
+        ctx.stroke();
+    }
+</script>
+
+</html>
